@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Aether — The Quiet Architecture of Light</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink:        #0a0b18;
+    --ink-2:      #111327;
+    --veil:       #1a1d38;
+    --mist:       #c9c7de;
+    --paper:      #efece2;
+    --halo:       #e7b36b;
+    --halo-warm:  #f0c88a;
+    --violet:     #8b7cd8;
+    --violet-dim: #5a4f99;
+    --aqua:       #7fb8c9;
+    --line:       rgba(239, 236, 226, 0.12);
+    --line-2:     rgba(239, 236, 226, 0.06);
+    --radius:     14px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    background: var(--ink);
+    color: var(--paper);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-weight: 300;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+    scroll-behavior: smooth;
+  }
+
+  a { color: inherit; text-decoration: none; }
+
+  /* ——— Starfield ——— */
+  .sky {
+    position: fixed; inset: 0; z-index: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 50% 0%, rgba(139,124,216,0.18), transparent 60%),
+      radial-gradient(ellipse 60% 40% at 80% 20%, rgba(127,184,201,0.10), transparent 60%),
+      radial-gradient(ellipse 70% 50% at 20% 60%, rgba(231,179,107,0.06), transparent 70%),
+      linear-gradient(180deg, #05060f 0%, #0a0b18 40%, #0f1124 100%);
+    pointer-events: none;
+  }
+  .sky::before, .sky::after {
+    content: ""; position: absolute; inset: 0;
+    background-image:
+      radial-gradient(1px 1px at 12% 18%, rgba(255,255,255,0.9), transparent 50%),
+      radial-gradient(1px 1px at 24% 72%, rgba(255,255,255,0.7), transparent 50%),
+      radial-gradient(1px 1px at 38% 34%, rgba(255,255,255,0.8), transparent 50%),
+      radial-gradient(1.5px 1.5px at 52% 12%, rgba(255,255,255,0.95), transparent 50%),
+      radial-gradient(1px 1px at 62% 58%, rgba(255,255,255,0.6), transparent 50%),
+      radial-gradient(1px 1px at 74% 24%, rgba(255,255,255,0.85), transparent 50%),
+      radial-gradient(1px 1px at 86% 66%, rgba(255,255,255,0.7), transparent 50%),
+      radial-gradient(1px 1px at 92% 40%, rgba(255,255,255,0.9), transparent 50%),
+      radial-gradient(1px 1px at 8%  50%, rgba(255,255,255,0.6), transparent 50%),
+      radial-gradient(1px 1px at 46% 88%, rgba(255,255,255,0.8), transparent 50%);
+    animation: drift 120s linear infinite;
+  }
+  .sky::after {
+    background-image:
+      radial-gradient(1px 1px at 14% 40%, rgba(231,179,107,0.9), transparent 50%),
+      radial-gradient(1px 1px at 70% 80%, rgba(139,124,216,0.8), transparent 50%),
+      radial-gradient(1.5px 1.5px at 34% 64%, rgba(255,255,255,0.9), transparent 50%),
+      radial-gradient(1px 1px at 82% 10%, rgba(127,184,201,0.9), transparent 50%);
+    animation: drift 200s linear infinite reverse, twinkle 6s ease-in-out infinite;
+    opacity: 0.85;
+  }
+  @keyframes drift {
+    from { transform: translate3d(0,0,0); }
+    to   { transform: translate3d(-60px,-40px,0); }
+  }
+  @keyframes twinkle {
+    0%, 100% { opacity: 0.85; }
+    50%      { opacity: 0.4; }
+  }
+
+  /* ——— Layout ——— */
+  .shell {
+    position: relative; z-index: 1;
+    max-width: 1200px; margin: 0 auto; padding: 0 32px;
+  }
+
+  /* ——— Nav ——— */
+  nav {
+    position: relative; z-index: 10;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 28px 0;
+    border-bottom: 1px solid var(--line-2);
+  }
+  .brand {
+    display: flex; align-items: center; gap: 12px;
+    font-family: 'Fraunces', serif; font-weight: 500; font-size: 22px;
+    letter-spacing: 0.02em;
+  }
+  .brand .mark {
+    width: 28px; height: 28px; position: relative;
+  }
+  .brand .mark svg { width: 100%; height: 100%; }
+  nav ul {
+    display: flex; gap: 36px; list-style: none;
+    font-size: 14px; letter-spacing: 0.04em;
+  }
+  nav ul a { opacity: 0.72; transition: opacity 0.2s ease; }
+  nav ul a:hover { opacity: 1; }
+  .nav-cta {
+    padding: 10px 20px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    font-size: 13px; letter-spacing: 0.06em;
+    transition: border-color 0.25s ease, background 0.25s ease;
+  }
+  .nav-cta:hover {
+    border-color: var(--halo);
+    background: rgba(231, 179, 107, 0.08);
+  }
+
+  /* ——— Hero ——— */
+  .hero {
+    position: relative;
+    padding: 120px 0 140px;
+    text-align: center;
+  }
+  .eyebrow {
+    display: inline-flex; align-items: center; gap: 10px;
+    font-size: 12px; text-transform: uppercase; letter-spacing: 0.28em;
+    color: var(--mist); opacity: 0.7;
+    padding: 8px 18px; border: 1px solid var(--line);
+    border-radius: 999px;
+    margin-bottom: 40px;
+  }
+  .eyebrow::before {
+    content: ""; width: 6px; height: 6px; background: var(--halo);
+    border-radius: 50%; box-shadow: 0 0 8px var(--halo);
+  }
+  h1.display {
+    font-family: 'Fraunces', serif; font-weight: 300;
+    font-size: clamp(52px, 8vw, 120px);
+    line-height: 1.02; letter-spacing: -0.02em;
+    max-width: 900px; margin: 0 auto 32px;
+  }
+  h1.display em {
+    font-style: italic; font-weight: 400;
+    background: linear-gradient(120deg, var(--halo) 0%, var(--halo-warm) 40%, var(--violet) 100%);
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .lede {
+    max-width: 580px; margin: 0 auto 48px;
+    font-size: 18px; line-height: 1.65; color: var(--mist);
+  }
+  .hero-actions {
+    display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;
+  }
+  .btn {
+    display: inline-flex; align-items: center; gap: 10px;
+    padding: 14px 28px; border-radius: 999px;
+    font-size: 14px; letter-spacing: 0.04em;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+    cursor: pointer;
+  }
+  .btn-primary {
+    background: var(--paper); color: var(--ink);
+    border: 1px solid var(--paper);
+  }
+  .btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 30px rgba(239, 236, 226, 0.2);
+  }
+  .btn-ghost {
+    color: var(--paper);
+    border: 1px solid var(--line);
+  }
+  .btn-ghost:hover { border-color: var(--mist); }
+  .btn .arrow { transition: transform 0.25s ease; }
+  .btn:hover .arrow { transform: translateX(3px); }
+
+  /* ——— Orb ——— */
+  .orb-wrap {
+    position: absolute; top: 8%; left: 50%;
+    transform: translateX(-50%);
+    width: min(620px, 90vw); aspect-ratio: 1;
+    pointer-events: none; z-index: -1;
+    opacity: 0.55;
+  }
+  .orb {
+    position: absolute; inset: 0;
+    border-radius: 50%;
+    background:
+      radial-gradient(circle at 35% 30%, rgba(240, 200, 138, 0.55) 0%, transparent 35%),
+      radial-gradient(circle at 60% 70%, rgba(139, 124, 216, 0.45) 0%, transparent 40%),
+      radial-gradient(circle at 50% 50%, rgba(127, 184, 201, 0.25) 0%, transparent 55%);
+    filter: blur(40px);
+    animation: breathe 12s ease-in-out infinite;
+  }
+  .orb-ring {
+    position: absolute; inset: 20%;
+    border-radius: 50%;
+    border: 1px solid rgba(231, 179, 107, 0.2);
+    animation: spin 60s linear infinite;
+  }
+  .orb-ring::before {
+    content: ""; position: absolute;
+    top: -4px; left: 50%;
+    width: 8px; height: 8px;
+    background: var(--halo);
+    border-radius: 50%;
+    box-shadow: 0 0 16px var(--halo);
+    transform: translateX(-50%);
+  }
+  .orb-ring.inner {
+    inset: 32%;
+    border-color: rgba(139, 124, 216, 0.25);
+    animation: spin 40s linear infinite reverse;
+  }
+  .orb-ring.inner::before { background: var(--violet); box-shadow: 0 0 16px var(--violet); }
+  @keyframes breathe {
+    0%, 100% { transform: scale(1); opacity: 0.55; }
+    50%      { transform: scale(1.05); opacity: 0.7; }
+  }
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+  }
+
+  /* ——— Sections ——— */
+  section { position: relative; padding: 120px 0; }
+  .section-head {
+    display: flex; justify-content: space-between; align-items: flex-end;
+    gap: 48px; margin-bottom: 72px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--line);
+  }
+  .section-head h2 {
+    font-family: 'Fraunces', serif; font-weight: 300;
+    font-size: clamp(36px, 5vw, 56px);
+    line-height: 1.05; letter-spacing: -0.01em;
+    max-width: 640px;
+  }
+  .section-head h2 em {
+    font-style: italic;
+    color: var(--halo);
+  }
+  .section-head .num {
+    font-family: 'Fraunces', serif; font-style: italic;
+    font-size: 14px; color: var(--mist); opacity: 0.6;
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+  }
+
+  /* ——— Pillars ——— */
+  .pillars {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .pillar {
+    background: var(--ink-2);
+    padding: 48px 36px;
+    min-height: 340px;
+    display: flex; flex-direction: column;
+    transition: background 0.4s ease;
+  }
+  .pillar:hover { background: var(--veil); }
+  .pillar .glyph {
+    width: 44px; height: 44px; margin-bottom: 36px;
+    color: var(--halo);
+  }
+  .pillar h3 {
+    font-family: 'Fraunces', serif; font-weight: 400;
+    font-size: 26px; letter-spacing: -0.01em;
+    margin-bottom: 16px;
+  }
+  .pillar p {
+    color: var(--mist); font-size: 15px; line-height: 1.65;
+    flex: 1;
+  }
+  .pillar .tag {
+    margin-top: 24px; font-size: 11px; text-transform: uppercase;
+    letter-spacing: 0.2em; color: var(--halo); opacity: 0.8;
+  }
+
+  /* ——— Manifesto ——— */
+  .manifesto {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 80px;
+    align-items: center;
+  }
+  .manifesto .words p {
+    font-family: 'Fraunces', serif; font-weight: 300;
+    font-size: 24px; line-height: 1.5;
+    color: var(--paper);
+    margin-bottom: 24px;
+  }
+  .manifesto .words p:last-child {
+    font-size: 16px; font-family: 'Inter', sans-serif;
+    color: var(--mist); font-style: normal;
+    line-height: 1.7;
+  }
+  .manifesto .sig {
+    display: block; margin-top: 48px;
+    font-family: 'Fraunces', serif; font-style: italic;
+    font-size: 15px; color: var(--mist); opacity: 0.8;
+  }
+  .manifesto .art {
+    aspect-ratio: 4/5;
+    background:
+      radial-gradient(circle at 30% 20%, rgba(231, 179, 107, 0.35), transparent 45%),
+      radial-gradient(circle at 70% 80%, rgba(139, 124, 216, 0.35), transparent 50%),
+      linear-gradient(160deg, var(--ink-2) 0%, var(--veil) 100%);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    position: relative;
+    overflow: hidden;
+  }
+  .manifesto .art::before {
+    content: ""; position: absolute; inset: 0;
+    background:
+      repeating-linear-gradient(45deg,
+        transparent 0,
+        transparent 18px,
+        rgba(239, 236, 226, 0.03) 18px,
+        rgba(239, 236, 226, 0.03) 19px);
+  }
+  .manifesto .art svg {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 70%; height: 70%;
+    opacity: 0.9;
+  }
+
+  /* ——— Scale table ——— */
+  .scale {
+    border-top: 1px solid var(--line);
+  }
+  .scale .row {
+    display: grid;
+    grid-template-columns: 80px 1fr 1fr 160px;
+    gap: 32px; align-items: center;
+    padding: 28px 0;
+    border-bottom: 1px solid var(--line);
+    transition: background 0.3s ease;
+  }
+  .scale .row:hover { background: rgba(239, 236, 226, 0.02); }
+  .scale .row .idx {
+    font-family: 'Fraunces', serif; font-style: italic;
+    font-size: 22px; color: var(--halo);
+  }
+  .scale .row .name {
+    font-family: 'Fraunces', serif; font-weight: 400;
+    font-size: 22px; letter-spacing: -0.01em;
+  }
+  .scale .row .desc {
+    font-size: 14px; color: var(--mist); line-height: 1.6;
+  }
+  .scale .row .meta {
+    font-size: 12px; text-transform: uppercase; letter-spacing: 0.18em;
+    color: var(--mist); opacity: 0.6; text-align: right;
+  }
+
+  /* ——— Closing ——— */
+  .closing {
+    padding: 160px 0 120px;
+    text-align: center;
+  }
+  .closing h2 {
+    font-family: 'Fraunces', serif; font-weight: 300;
+    font-size: clamp(44px, 6vw, 84px);
+    line-height: 1.05; letter-spacing: -0.02em;
+    max-width: 820px; margin: 0 auto 32px;
+  }
+  .closing h2 em {
+    font-style: italic;
+    background: linear-gradient(120deg, var(--halo), var(--violet));
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .closing p {
+    color: var(--mist); font-size: 17px; line-height: 1.6;
+    max-width: 540px; margin: 0 auto 40px;
+  }
+
+  /* ——— Footer ——— */
+  footer {
+    padding: 48px 0 40px;
+    border-top: 1px solid var(--line-2);
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 13px; color: var(--mist); opacity: 0.7;
+    flex-wrap: wrap; gap: 16px;
+  }
+  footer .links { display: flex; gap: 24px; }
+  footer .links a { transition: color 0.2s ease; }
+  footer .links a:hover { color: var(--paper); }
+
+  /* ——— Reveal animations ——— */
+  .reveal {
+    opacity: 0; transform: translateY(20px);
+    transition: opacity 1s ease, transform 1s ease;
+  }
+  .reveal.in {
+    opacity: 1; transform: translateY(0);
+  }
+
+  /* ——— Responsive ——— */
+  @media (max-width: 860px) {
+    .shell { padding: 0 24px; }
+    nav ul { display: none; }
+    .pillars { grid-template-columns: 1fr; }
+    .manifesto { grid-template-columns: 1fr; gap: 48px; }
+    .section-head { flex-direction: column; align-items: flex-start; gap: 16px; }
+    .scale .row {
+      grid-template-columns: 40px 1fr;
+      gap: 16px;
+    }
+    .scale .row .desc, .scale .row .meta { grid-column: 2 / 3; }
+    .scale .row .meta { text-align: left; }
+    section { padding: 80px 0; }
+    .hero { padding: 60px 0 100px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="sky" aria-hidden="true"></div>
+
+<div class="shell">
+
+  <nav>
+    <div class="brand">
+      <span class="mark" aria-hidden="true">
+        <svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.25">
+          <circle cx="14" cy="14" r="11"/>
+          <circle cx="14" cy="14" r="5.5"/>
+          <circle cx="14" cy="14" r="1.5" fill="currentColor" stroke="none"/>
+          <line x1="14" y1="0.5" x2="14" y2="4.5"/>
+          <line x1="14" y1="23.5" x2="14" y2="27.5"/>
+          <line x1="0.5" y1="14" x2="4.5" y2="14"/>
+          <line x1="23.5" y1="14" x2="27.5" y2="14"/>
+        </svg>
+      </span>
+      Aether
+    </div>
+    <ul>
+      <li><a href="#principles">Principles</a></li>
+      <li><a href="#manifesto">Manifesto</a></li>
+      <li><a href="#scale">The Scale</a></li>
+      <li><a href="#begin">Begin</a></li>
+    </ul>
+    <a href="#begin" class="nav-cta">Enter →</a>
+  </nav>
+
+  <!-- ——— Hero ——— -->
+  <header class="hero">
+    <div class="orb-wrap" aria-hidden="true">
+      <div class="orb"></div>
+      <div class="orb-ring"></div>
+      <div class="orb-ring inner"></div>
+    </div>
+
+    <span class="eyebrow">A quiet practice · Volume I</span>
+    <h1 class="display">
+      The architecture of <em>light</em><br/>between things.
+    </h1>
+    <p class="lede">
+      Aether is the medium we keep forgetting. It is the space that holds the
+      stars apart, the pause between the notes, the breath you did not know you were
+      taking. This is an invitation to listen for it.
+    </p>
+    <div class="hero-actions">
+      <a href="#principles" class="btn btn-primary">
+        Begin the reading <span class="arrow">→</span>
+      </a>
+      <a href="#manifesto" class="btn btn-ghost">
+        What we believe
+      </a>
+    </div>
+  </header>
+
+  <!-- ——— Principles ——— -->
+  <section id="principles">
+    <div class="section-head reveal">
+      <h2>Three ways of <em>looking</em> at the unseen.</h2>
+      <span class="num">§ 01 — Principles</span>
+    </div>
+
+    <div class="pillars reveal">
+      <article class="pillar">
+        <svg class="glyph" viewBox="0 0 44 44" fill="none" stroke="currentColor" stroke-width="1.25">
+          <circle cx="22" cy="22" r="18"/>
+          <path d="M4 22 Q 22 4, 40 22 T 4 22"/>
+          <circle cx="22" cy="22" r="2" fill="currentColor" stroke="none"/>
+        </svg>
+        <h3>Stillness as material.</h3>
+        <p>
+          Everything built reaches for its own silence. We treat the quiet like
+          marble — not what is left over, but what is shaped. The interface is
+          the negative space of intention.
+        </p>
+        <span class="tag">I · Ground</span>
+      </article>
+
+      <article class="pillar">
+        <svg class="glyph" viewBox="0 0 44 44" fill="none" stroke="currentColor" stroke-width="1.25">
+          <path d="M22 4 L34 22 L22 40 L10 22 Z"/>
+          <path d="M22 12 L28 22 L22 32 L16 22 Z"/>
+          <line x1="22" y1="4" x2="22" y2="40"/>
+        </svg>
+        <h3>Geometry of attention.</h3>
+        <p>
+          Light travels where structure permits. We compose rhythms — not of
+          pixels but of pauses — so that what matters can be seen without
+          being pointed at.
+        </p>
+        <span class="tag">II · Line</span>
+      </article>
+
+      <article class="pillar">
+        <svg class="glyph" viewBox="0 0 44 44" fill="none" stroke="currentColor" stroke-width="1.25">
+          <circle cx="14" cy="22" r="10"/>
+          <circle cx="30" cy="22" r="10"/>
+          <path d="M14 12 Q 22 22, 30 32"/>
+        </svg>
+        <h3>Devotion over novelty.</h3>
+        <p>
+          We return to the same few ideas on purpose. The fifth draft of a
+          familiar form is worth more than the first draft of a clever one.
+          Mastery is a kind of love.
+        </p>
+        <span class="tag">III · Return</span>
+      </article>
+    </div>
+  </section>
+
+  <!-- ——— Manifesto ——— -->
+  <section id="manifesto">
+    <div class="section-head reveal">
+      <h2>A brief note on <em>making</em>.</h2>
+      <span class="num">§ 02 — Manifesto</span>
+    </div>
+
+    <div class="manifesto reveal">
+      <div class="words">
+        <p>
+          We are told the age demands speed — that whatever is not urgent is
+          irrelevant. We have found the opposite to be true.
+        </p>
+        <p>
+          The things that last were made by people who could afford to be
+          still. Aether is our practice of that affordance: a way of working
+          that lets the answer arrive on its own terms.
+        </p>
+        <p>
+          If you sense, as we do, that something quieter is overdue — you are
+          welcome here. There is no manifesto beyond what the work itself
+          begins to say.
+        </p>
+        <span class="sig">— for the attentive, wherever they are</span>
+      </div>
+      <div class="art" aria-hidden="true">
+        <svg viewBox="0 0 200 250" fill="none" stroke="#efece2" stroke-width="0.75" opacity="0.9">
+          <circle cx="100" cy="125" r="70" stroke-opacity="0.3"/>
+          <circle cx="100" cy="125" r="55" stroke-opacity="0.45"/>
+          <circle cx="100" cy="125" r="40" stroke-opacity="0.6"/>
+          <circle cx="100" cy="125" r="25" stroke-opacity="0.75"/>
+          <circle cx="100" cy="125" r="3" fill="#e7b36b" stroke="none"/>
+          <line x1="100" y1="40" x2="100" y2="210" stroke-opacity="0.15"/>
+          <line x1="15"  y1="125" x2="185" y2="125" stroke-opacity="0.15"/>
+          <path d="M30 125 Q 100 55, 170 125" stroke="#e7b36b" stroke-opacity="0.6" stroke-dasharray="2 4"/>
+          <path d="M30 125 Q 100 195, 170 125" stroke="#8b7cd8" stroke-opacity="0.6" stroke-dasharray="2 4"/>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <!-- ——— Scale ——— -->
+  <section id="scale">
+    <div class="section-head reveal">
+      <h2>The seven <em>atmospheres</em>.</h2>
+      <span class="num">§ 03 — A scale</span>
+    </div>
+
+    <div class="scale reveal">
+      <div class="row">
+        <span class="idx">i.</span>
+        <span class="name">Cinder</span>
+        <span class="desc">The residue of the day. What has burned, and what is left warm enough to notice.</span>
+        <span class="meta">Dusk · Ember</span>
+      </div>
+      <div class="row">
+        <span class="idx">ii.</span>
+        <span class="name">Vellum</span>
+        <span class="desc">A surface willing to be written on. Soft enough to hold, firm enough to keep.</span>
+        <span class="meta">Paper · Gesture</span>
+      </div>
+      <div class="row">
+        <span class="idx">iii.</span>
+        <span class="name">Quiet Sea</span>
+        <span class="desc">Depth without turbulence. The kind of blue that returns things to scale.</span>
+        <span class="meta">Water · Repose</span>
+      </div>
+      <div class="row">
+        <span class="idx">iv.</span>
+        <span class="name">Lumen</span>
+        <span class="desc">The first gold of early light — sincere, brief, and incapable of irony.</span>
+        <span class="meta">Dawn · Signal</span>
+      </div>
+      <div class="row">
+        <span class="idx">v.</span>
+        <span class="name">Amethyst</span>
+        <span class="desc">The color of thinking about something that hasn’t finished happening.</span>
+        <span class="meta">Night · Thought</span>
+      </div>
+      <div class="row">
+        <span class="idx">vi.</span>
+        <span class="name">Ash Rose</span>
+        <span class="desc">Tenderness with a little history in it. For pages that know they are loved.</span>
+        <span class="meta">Bloom · Time</span>
+      </div>
+      <div class="row">
+        <span class="idx">vii.</span>
+        <span class="name">Aether</span>
+        <span class="desc">What remains when everything else is named. The field against which the rest is legible.</span>
+        <span class="meta">Ground · All</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ——— Closing ——— -->
+  <section id="begin" class="closing">
+    <h2 class="reveal">Step lightly. <em>Begin anywhere.</em></h2>
+    <p class="reveal">
+      There is no first door. Read a single line, keep a single habit, answer a
+      single letter. The rest is a matter of continuing.
+    </p>
+    <div class="hero-actions reveal">
+      <a href="mailto:hello@aether.studio" class="btn btn-primary">
+        Write to us <span class="arrow">→</span>
+      </a>
+      <a href="#principles" class="btn btn-ghost">Return to the top</a>
+    </div>
+  </section>
+
+  <footer>
+    <span>Aether · a small studio, kept carefully.</span>
+    <div class="links">
+      <a href="#principles">Principles</a>
+      <a href="#manifesto">Manifesto</a>
+      <a href="#scale">Scale</a>
+      <a href="mailto:hello@aether.studio">Contact</a>
+    </div>
+  </footer>
+
+</div>
+
+<script>
+  // Gentle reveal on scroll
+  const io = new IntersectionObserver((entries) => {
+    for (const e of entries) {
+      if (e.isIntersecting) {
+        e.target.classList.add('in');
+        io.unobserve(e.target);
+      }
+    }
+  }, { threshold: 0.12 });
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+  // Subtle parallax on the orb
+  const orbWrap = document.querySelector('.orb-wrap');
+  if (orbWrap && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    window.addEventListener('scroll', () => {
+      const y = window.scrollY;
+      orbWrap.style.transform = `translateX(-50%) translateY(${y * 0.15}px)`;
+    }, { passive: true });
+  }
+</script>
+
+</body>
+</html>
